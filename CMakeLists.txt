@@ -4,6 +4,7 @@ project(IMUOrientationEstimator)
 # Set C++14
 add_compile_options(-std=c++14)
 
+# Release mode.
 set(CMAKE_BUILD_TYPE Release)
 
 find_package(Eigen3 REQUIRED)
@@ -18,28 +19,34 @@ add_library(${PROJECT_NAME} SHARED
 )
 target_link_libraries(${PROJECT_NAME} ${EIGEN3_LIBS})
 
-find_package(OpenCV 4 REQUIRED)
-include_directories(${OpenCV_INCLUDE_DIRS})
+option(BUILD_EXAMPLE "Build example code" OFF)
 
-add_executable(RunSimData example/RunSimData.cpp)
-target_link_libraries(RunSimData ${PROJECT_NAME} ${OpenCV_LIBS})
+if (BUILD_EXAMPLE) 
+    # SIM 
+    find_package(OpenCV 4 REQUIRED)
+    include_directories(${OpenCV_INCLUDE_DIRS})
 
-find_package(catkin REQUIRED COMPONENTS
-    sensor_msgs
-    rosbag
-)
-include_directories(${catkin_INCLUDE_DIRS})
+    add_executable(RunSimData example/RunSimData.cpp)
+    target_link_libraries(RunSimData ${PROJECT_NAME} ${OpenCV_LIBS})
 
-add_executable(RunRosbag example/RunRosbag.cpp)
-target_link_libraries(RunRosbag
-    ${catkin_LIBRARIES}
-    ${PROJECT_NAME}
-    ${OpenCV_LIBS}
-)
+    # ROSBAG
+    find_package(catkin REQUIRED COMPONENTS
+        sensor_msgs
+        rosbag
+    )
+    include_directories(${catkin_INCLUDE_DIRS})
 
-## mynteye
-find_package(mynteye REQUIRED)
-message(STATUS "Found mynteye: ${mynteye_VERSION}")
+    add_executable(RunRosbag example/RunRosbag.cpp)
+    target_link_libraries(RunRosbag
+        ${catkin_LIBRARIES}
+        ${PROJECT_NAME}
+        ${OpenCV_LIBS}
+    )
 
-add_executable(RunMyntEye example/RunMyntEye.cpp)
-target_link_libraries(RunMyntEye ${PROJECT_NAME} mynteye ${OpenCV_LIBS})
+    # MYNTEYE
+    find_package(mynteye REQUIRED)
+    message(STATUS "Found mynteye: ${mynteye_VERSION}")
+    add_executable(RunMyntEye example/RunMyntEye.cpp)
+    target_link_libraries(RunMyntEye ${PROJECT_NAME} mynteye ${OpenCV_LIBS})
+
+endif()
