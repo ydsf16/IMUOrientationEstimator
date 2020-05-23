@@ -21,8 +21,8 @@ Status Estimator::Estimate(double timestamp, const Eigen::Vector3d& gyro, const 
 
         bg_.setZero();
         cov_.setZero();
-        cov_.topLeftCorner<3, 3>() = Eigen::Matrix3d::Identity() * 5. * 5. * kDeg2Rad * kDeg2Rad;
-        cov_.bottomRightCorner<3, 3>() = Eigen::Matrix3d::Identity() * 1. * 1. * kDeg2Rad * kDeg2Rad;
+        cov_.topLeftCorner<3, 3>() = Eigen::Matrix3d::Identity() * 0.5 * 0.5 * kDeg2Rad * kDeg2Rad;
+        cov_.bottomRightCorner<3, 3>() = Eigen::Matrix3d::Identity() * 0.1 * 0.1 * kDeg2Rad * kDeg2Rad;
         last_timestamp_ = timestamp;
 
         // Send out.
@@ -41,17 +41,26 @@ Status Estimator::Estimate(double timestamp, const Eigen::Vector3d& gyro, const 
     Eigen::Matrix<double, 6, 6> prior_cov;
     propagator_->PropagateMeanAndCov(G_R_I_, bg_, cov_, gyro, delta_t, &prior_G_R_I, &prior_bg, &prior_cov);
 
-    // Update
-    Update(prior_G_R_I, prior_bg, prior_cov, acc, acc_noise_mat_, &G_R_I_, &bg_, &cov_);
+    acc_buffer_.push_back(acc);
+    if (acc_buffer_.size() > config_.acc_buffer_size) {
+        acc_buffer_.pop_front();
+    }
+    // compute mean.
+    Eigen::Vector3d mean_acc(0., 0., 0.);
+    for (const Eigen::Vector3d& one_acc : acc_buffer_) {
+        mean_acc += one_acc;
+    }
+    mean_acc = mean_acc / static_cast<double>(acc_buffer_.size());
 
-    std::cout << "Cov: " << cov_.diagonal().transpose().cwiseSqrt() * kRad2Deg << std::endl;
-    std::cout << "bg: " << bg_ * kRad2Deg << std::endl;
+    // Update
+    Update(prior_G_R_I, prior_bg, prior_cov, mean_acc, acc_noise_mat_, &G_R_I_, &bg_, &cov_);
+
+    std::cout << "GyroBias: " << std::fixed << bg_.transpose() << std::endl;
 
     // Send out.
     *G_R_I = G_R_I_;
 
     return Status::kValid;
 }
-
 
 }  // namespace OriEst

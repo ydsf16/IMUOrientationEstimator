@@ -18,8 +18,11 @@ add_library(${PROJECT_NAME} SHARED
 )
 target_link_libraries(${PROJECT_NAME} ${EIGEN3_LIBS})
 
-add_executable(RunCSVData  example/RunCSVData.cpp)
-#target_link_libraries(test_${PROJECT_NAME} )
+find_package(OpenCV 4 REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+add_executable(RunSimData example/RunSimData.cpp)
+target_link_libraries(RunSimData ${PROJECT_NAME} ${OpenCV_LIBS})
 
 find_package(catkin REQUIRED COMPONENTS
     sensor_msgs
@@ -31,4 +34,12 @@ add_executable(RunRosbag example/RunRosbag.cpp)
 target_link_libraries(RunRosbag
     ${catkin_LIBRARIES}
     ${PROJECT_NAME}
+    ${OpenCV_LIBS}
 )
+
+## mynteye
+find_package(mynteye REQUIRED)
+message(STATUS "Found mynteye: ${mynteye_VERSION}")
+
+add_executable(RunMyntEye example/RunMyntEye.cpp)
+target_link_libraries(RunMyntEye ${PROJECT_NAME} mynteye ${OpenCV_LIBS})
