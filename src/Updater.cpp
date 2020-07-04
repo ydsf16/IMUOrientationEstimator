@@ -28,7 +28,9 @@ void Update(const Eigen::Matrix3d& prior_G_R_I,
     // Update state.
     Eigen::Matrix3d delta_Rot;
     if (delta_x.topRows<3>().norm() < 1e-12) {
-        delta_Rot = Eigen::Matrix3d::Identity() + SkewMat(delta_x.topRows<3>());
+        delta_Rot = 
+            Eigen::Quaterniond(
+                Eigen::Matrix3d::Identity() + SkewMat(delta_x.topRows<3>())).normalized().toRotationMatrix();
     } else {
         const double angle = delta_x.topRows<3>().norm();
         const Eigen::Vector3d axis = delta_x.topRows<3>() / angle;

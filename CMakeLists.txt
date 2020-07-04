@@ -19,15 +19,11 @@ add_library(${PROJECT_NAME} SHARED
 )
 target_link_libraries(${PROJECT_NAME} ${EIGEN3_LIBS})
 
-option(BUILD_EXAMPLE "Build example code" OFF)
+option(BUILD_EXAMPLE "Build example code" ON)
 
 if (BUILD_EXAMPLE) 
-    # SIM 
     find_package(OpenCV 4 REQUIRED)
     include_directories(${OpenCV_INCLUDE_DIRS})
-
-    add_executable(RunSimData example/RunSimData.cpp)
-    target_link_libraries(RunSimData ${PROJECT_NAME} ${OpenCV_LIBS})
 
     # ROSBAG
     find_package(catkin REQUIRED COMPONENTS

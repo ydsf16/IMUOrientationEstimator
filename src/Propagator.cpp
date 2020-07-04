@@ -20,7 +20,7 @@ void Propagator::PropagateMeanAndCov(const Eigen::Matrix3d& begin_G_R_I,
     const Eigen::Vector3d angle_vec = unbiased_gyro * delta_t;
     Eigen::Matrix3d delta_rot;
     if (angle_vec.norm() < 1e-12) {
-        delta_rot = Eigen::Matrix3d::Identity() + SkewMat(angle_vec);
+        delta_rot = Eigen::Quaterniond(Eigen::Matrix3d::Identity() + SkewMat(angle_vec)).normalized().toRotationMatrix();
     } else {
         const double angle = angle_vec.norm();
         const Eigen::Vector3d axis = angle_vec / angle;
